@@ -24,14 +24,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public User addUser(User user) {
         log.debug("Add new user {}", user);
         return userRepository.save(user);
     }
 
     @Override
-    @Transactional
     public void deleteUser(long userId) {
         log.debug("Delete user with userId={}", userId);
         userRepository.deleteById(userId);
