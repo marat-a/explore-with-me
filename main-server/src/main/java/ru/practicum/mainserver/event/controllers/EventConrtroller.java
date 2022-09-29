@@ -1,4 +1,4 @@
-package ru.practicum.mainserver.controllers.privateApi;
+package ru.practicum.mainserver.event.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 
