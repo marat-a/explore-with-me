@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.common.exceptions.NotFoundException;
 import ru.practicum.mainserver.user.UserRepository;
 import ru.practicum.mainserver.user.model.User;
+import ru.practicum.mainserver.user.model.UserDto;
 import ru.practicum.mainserver.user.model.UserMapper;
-import ru.practicum.mainserver.user.service.UserService;
 
 import java.util.List;
 
@@ -22,37 +21,45 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User addUser(User user) {
-        log.debug("Add new user '{}', '{}'", user.getName(), user.getEmail());
-        return userRepository.save(user);
+    public UserDto addUser(User user) {
+        user = userRepository.save(user);
+        log.info("Add new user '{}', '{}'", user.getName(), user.getEmail());
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public User getUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
+    public UserDto getUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with userId=" + userId + " not found.")
         );
+        log.info("Get users with userId=" + userId);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public List<User> getUsers(long[] ids, int from, int size) {
-        log.debug("Get users list");
+    public List<UserDto> getUsers(long[] ids, int from, int size) {
         PageRequest pageRequest = PageRequest.of(from, size);
-        Page<User> result = userRepository.findAllByIdIn(ids, pageRequest);
-        return result.toList();
+        Page<User> result;
+        if (ids != null) {
+            result = userRepository.findAllByIdIn(ids, pageRequest);
+        } else result = userRepository.findAll(pageRequest);
+        List<User> users = result.toList();
+        log.info("Get user's list with parameters: from =" + from + ", size=" + size + ".");
+        return UserMapper.getUserDtoList(users);
     }
 
     @Override
     public void deleteUser(long userId) {
-        log.debug("Delete user, userId={}.", userId);
-        userRepository.deleteById(userId);
+        if (isUserExist(userId)) {
+            userRepository.deleteById(userId);
+            log.info("Delete user, userId={}.", userId);
+        } else throw new NotFoundException("User with userId=" + userId + " not found.");
     }
 
     @Override
     public boolean isUserExist(long userId) {
-        log.debug("Check is user exist, userId={}.", userId);
-        return userRepository.existsById(userId);
+        boolean isUserExist = userRepository.existsById(userId);
+        log.info("Check is user exist, userId={}, result = {}", userId, isUserExist);
+        return isUserExist;
     }
-
-
 }

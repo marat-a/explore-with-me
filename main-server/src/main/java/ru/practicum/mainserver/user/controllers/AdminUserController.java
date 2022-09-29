@@ -20,17 +20,16 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
-    public List<UserDto> getUsers(@RequestParam("ids") long[] userIds,
+    public List<UserDto> getUsers(@RequestParam(required=false, name = "ids") long[] userIds,
                                   @RequestParam(defaultValue = "0") Integer from,
                                   @RequestParam(defaultValue = "10") Integer size) {
-        List<User> userList = userService.getUsers(userIds, from, size);
-        return UserMapper.getUserDtoList(userList);
+        return  userService.getUsers(userIds, from, size);
     }
 
     @PostMapping
     public UserDto addUser(@RequestBody @Valid NewUserDto newUserDto) {
         User user = UserMapper.toUser(newUserDto);
-        return UserMapper.toUserDto(userService.addUser(user));
+        return userService.addUser(user);
     }
 
     @DeleteMapping("/{userId}")
