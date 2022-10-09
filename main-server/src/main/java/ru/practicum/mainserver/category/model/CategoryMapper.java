@@ -1,13 +1,13 @@
-package ru.practicum.mainserver.category;
+package ru.practicum.mainserver.category.model;
 
-import ru.practicum.mainserver.category.model.Category;
-import ru.practicum.mainserver.category.model.CategoryDto;
-import ru.practicum.mainserver.category.model.NewCategoryDto;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class CategoryMapper {
+
     public static CategoryDto toCategoryDto(Category category) {
         return new CategoryDto(category.getId(), category.getName());
     }

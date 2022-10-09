@@ -1,12 +1,12 @@
 package ru.practicum.mainserver.category;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.category.model.CategoryDto;
+import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.category.model.NewCategoryDto;
 import ru.practicum.mainserver.common.exceptions.NotFoundException;
 
@@ -28,7 +28,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto getCategory(Long catId) {
+    public Category getCategory(Long catId) {
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Category with id =" + catId + " not found."));
+        log.info("Category with id " + catId + " was requested.");
+        return category;
+    }
+
+    @Override
+    public CategoryDto getCategoryDto(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id =" + catId + " not found."));
         log.info("Category with id " + catId + " was requested.");

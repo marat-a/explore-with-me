@@ -29,11 +29,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(Long userId) {
+        log.info("Get users with userId=" + userId);
+        return UserMapper.toUserDto(findUserById(userId));
+    }
+
+    @Override
+    public User findUserById(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with userId=" + userId + " not found.")
         );
         log.info("Get users with userId=" + userId);
-        return UserMapper.toUserDto(user);
+        return user;
     }
 
     @Override
@@ -45,7 +51,7 @@ public class UserServiceImpl implements UserService {
         } else result = userRepository.findAll(pageRequest);
         List<User> users = result.toList();
         log.info("Get user's list with parameters: from =" + from + ", size=" + size + ".");
-        return UserMapper.getUserDtoList(users);
+        return UserMapper.toUserDtoList(users);
     }
 
     @Override
@@ -62,4 +68,5 @@ public class UserServiceImpl implements UserService {
         log.info("Check is user exist, userId={}, result = {}", userId, isUserExist);
         return isUserExist;
     }
+
 }

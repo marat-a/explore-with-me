@@ -1,5 +1,6 @@
 package ru.practicum.mainserver.event.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,19 +13,21 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 public class NewEventDto {
-
-    @Size(min = 20, message = "{validation.name.size.too_short}")
-    @Size(max = 2000, message = "{validation.name.size.too_long}")
+    @NotNull
+    @Size(min = 20, message = "The minimum number of characters must be at least 20")
+    @Size(max = 2000, message = "The maximum number of characters should be no more than 2000")
     private String annotation;
 
     @NotNull
     private Long category;
 
-    @Size(min = 20, message = "{validation.name.size.too_short}")
-    @Size(max = 7000, message = "{validation.name.size.too_long}")
+    @NotNull
+    @Size(min = 20, message = "The minimum number of characters must be at least 20")
+    @Size(max = 7000, message = "The maximum number of characters should be no more than 7000")
     private String description;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @PlusTwoHours
     private LocalDateTime eventDate;
 
@@ -35,12 +38,13 @@ public class NewEventDto {
     private Boolean paid;
 
     @Value("0")
-    private Integer participantLimit;
+    private Long participantLimit;
 
     @Value("true")
     private Boolean requestModeration;
 
-    @Size(min = 3, message = "{validation.name.size.too_short}")
-    @Size(max = 120, message = "{validation.name.size.too_long}")
+    @NotNull
+    @Size(min = 3, message = "The minimum number of characters must be at least 3")
+    @Size(max = 120, message = "The maximum number of characters should be no more than 120")
     private String title;
 }

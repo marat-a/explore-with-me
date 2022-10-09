@@ -1,7 +1,9 @@
 package ru.practicum.mainserver.event.model;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.user.model.User;
@@ -9,16 +11,18 @@ import ru.practicum.mainserver.user.model.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "events")
+
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
+//    private Long userId;
 
     private String annotation;
 
@@ -27,24 +31,25 @@ public class Event {
 
     private Long confirmedRequests;
 
-    private String createdOn;
+    private LocalDateTime createdOn;
 
     private String description;
 
-    private String eventDate;
+    private LocalDateTime eventDate;
     @OneToOne
     private User initiator;
-    @OneToOne
+
+    @Embedded
     private Location location;
 
     private Boolean paid;
 
-    private Integer participantLimit;
+    private Long participantLimit;
 
     private LocalDateTime publishedOn;
 
     private Boolean requestModeration;
-
+    @Enumerated(EnumType.STRING)
     private EventState state;
 
     private String title;
