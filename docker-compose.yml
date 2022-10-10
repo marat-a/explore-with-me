@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  explore-stats-server:
+  stats-service:
     build: ./stat-server
     container_name: explore-stats
     ports:

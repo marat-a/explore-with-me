@@ -10,7 +10,6 @@ import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.category.model.Category_;
 import ru.practicum.mainserver.client.StatsClient;
-import ru.practicum.mainserver.client.dto.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.event.EventRepository;
 import ru.practicum.mainserver.event.model.*;
@@ -24,7 +23,9 @@ import javax.persistence.criteria.JoinType;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -128,7 +129,6 @@ public class EventServiceImpl implements EventService {
         event.setState(EventState.CANCELED);
         return eventMapper.toEventFullDto(eventRepository.save(event));
     }
-
 
 
     @Override
