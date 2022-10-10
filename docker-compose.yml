@@ -26,7 +26,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - explore-main-server
+      - explore-main-db
     environment:
       - STATISTIC_SERVER_URL=http://explore-stats-server:9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://explore-main-db:5432/explore-main
