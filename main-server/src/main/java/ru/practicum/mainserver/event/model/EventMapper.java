@@ -1,14 +1,12 @@
 package ru.practicum.mainserver.event.model;
 
 import lombok.AllArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.stereotype.Component;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.client.StatsClient;
 import ru.practicum.mainserver.client.dto.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
-import ru.practicum.mainserver.event.service.EventService;
 import ru.practicum.mainserver.user.model.UserMapper;
 import ru.practicum.mainserver.user.service.UserService;
 
@@ -22,10 +20,9 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class EventMapper {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     UserService userService;
     StatsClient statsClient;
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public EventShortDto toEventShortDto(Event event) {
         String uri = "/events/" + event.getId();
@@ -39,10 +36,10 @@ public class EventMapper {
         eventShortDto.setInitiator(UserMapper.toUserShortDto(event.getInitiator()));
         eventShortDto.setConfirmedRequests(event.getConfirmedRequests());
         eventShortDto.setViews(statsClient.getViewStats(
-                event.getCreatedOn().format(FORMATTER),
-                LocalDateTime.now().format(FORMATTER),
-                Set.of(uri),
-                false)
+                        event.getCreatedOn().format(FORMATTER),
+                        LocalDateTime.now().format(FORMATTER),
+                        Set.of(uri),
+                        false)
                 .getOrDefault(uri, new ViewStats("", "", 0L)).getHits());
         return eventShortDto;
     }
@@ -106,6 +103,7 @@ public class EventMapper {
 
         return event;
     }
+
     public Event updateRequestToEvent(UpdateEventRequest updateEventRequest, CategoryService categoryService) {
         Event event = new Event();
 
