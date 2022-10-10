@@ -21,12 +21,13 @@ public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationRepository compilationRepository;
     private final EventService eventService;
+    CompilationMapper compilationMapper;
 
     @Override
     public CompilationDto saveCompilation(NewCompilationDto newCompilationDto) {
         Compilation compilation = CompilationMapper.toCompilation(newCompilationDto, eventService);
         Compilation compilationFromDb = compilationRepository.save(compilation);
-        return CompilationMapper.toCompilationDto(compilationFromDb);
+        return compilationMapper.toCompilationDto(compilationFromDb);
     }
 
     @Override
@@ -67,7 +68,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto getCompilation(long compId) {
-        return CompilationMapper.toCompilationDto(findById(compId));
+        return compilationMapper.toCompilationDto(findById(compId));
     }
 
     private Compilation findById(long id) {
@@ -82,9 +83,9 @@ public class CompilationServiceImpl implements CompilationService {
         Sort sortById = Sort.by(Sort.Direction.ASC, "id");
         Pageable page = PageRequest.of(from, size, sortById);
         if (pinned.equals(Boolean.TRUE)) {
-            return CompilationMapper.toCompilationDtoList(compilationRepository.findPinnedCompilations(page));
+            return compilationMapper.toCompilationDtoList(compilationRepository.findPinnedCompilations(page));
         } else {
-            return CompilationMapper.toCompilationDtoList(compilationRepository.findCompilations(page));
+            return compilationMapper.toCompilationDtoList(compilationRepository.findCompilations(page));
         }
     }
 }

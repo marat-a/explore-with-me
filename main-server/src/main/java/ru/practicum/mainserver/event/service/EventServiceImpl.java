@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.category.model.Category_;
+import ru.practicum.mainserver.client.StatsClient;
+import ru.practicum.mainserver.client.dto.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.event.EventRepository;
 import ru.practicum.mainserver.event.model.*;
@@ -22,9 +24,7 @@ import javax.persistence.criteria.JoinType;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -32,16 +32,18 @@ public class EventServiceImpl implements EventService {
     EventRepository eventRepository;
     UserService userService;
     CategoryService categoryService;
+    StatsClient statsClient;
+    EventMapper eventMapper;
 
 
-@Override
+    @Override
     public EventFullDto add(NewEventDto newEventDto, long userId) {
-        Event event = EventMapper.newToEvent(newEventDto, categoryService);
+        Event event = eventMapper.newToEvent(newEventDto, categoryService);
         event.setInitiator(userService.findUserById(userId));
         event.setCreatedOn(LocalDateTime.now());
         event.setConfirmedRequests(0L);
         event.setState(EventState.PENDING);
-        return EventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     public Event updateEvent(Event event, Event updateRequest) {
@@ -81,40 +83,40 @@ public class EventServiceImpl implements EventService {
                 || (event.getState().equals(EventState.PENDING)))
                 || !event.getRequestModeration().equals(Boolean.TRUE))) { //Проверка пользователя для разрешения правок
             throw new RuntimeException();
-        } else if (!Objects.equals(event.getInitiator().getId(), userId)){
+        } else if (!Objects.equals(event.getInitiator().getId(), userId)) {
             throw new RuntimeException();
         }
     }
 
     @Override
     public EventFullDto updateEventByUser(UpdateEventRequest updateEventRequest, long userId) {
-        Event updateRequest = EventMapper.updateRequestToEvent(updateEventRequest, categoryService);
+        Event updateRequest = eventMapper.updateRequestToEvent(updateEventRequest, categoryService);
         Event event = findById(updateEventRequest.getEventId());
         checkPermission(event, userId);
         Event updatedEvent = updateEvent(event, updateRequest);
         updatedEvent.setState(EventState.PENDING);
-        return EventMapper.toEventFullDto(updatedEvent);
+        return eventMapper.toEventFullDto(updatedEvent);
     }
 
     @Override
     public EventFullDto updateEventByAdmin(AdminUpdateEventRequest updateRequest, long eventId) {
-        Event updateRequestEvent = EventMapper.adminUpdateRequestToEvent(updateRequest, categoryService);
+        Event updateRequestEvent = eventMapper.adminUpdateRequestToEvent(updateRequest, categoryService);
         Event event = findById(eventId);
-        return EventMapper.toEventFullDto(updateEvent(event, updateRequestEvent));
+        return eventMapper.toEventFullDto(updateEvent(event, updateRequestEvent));
     }
 
     @Override
     public EventFullDto publishEvent(long eventId) {
         Event event = findById(eventId);
         event.setState(EventState.PUBLISHED);
-        return EventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
     public EventFullDto rejectEvent(long eventId) {
         Event event = findById(eventId);
         event.setState(EventState.CANCELED);
-        return EventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -124,8 +126,10 @@ public class EventServiceImpl implements EventService {
             throw new RuntimeException();
         }
         event.setState(EventState.CANCELED);
-        return EventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
+
+
 
     @Override
     public Event findById(Long id) {
@@ -141,7 +145,7 @@ public class EventServiceImpl implements EventService {
         Sort sortById = Sort.by(Sort.Direction.ASC, "id");
         Pageable page = PageRequest.of(from, size, sortById);
         List<Event> eventList = eventRepository.findByInitiatorId(initiatorId, page);
-        return EventMapper.toEventFullDtoList(eventList);
+        return eventMapper.toEventFullDtoList(eventList);
     }
 
     @Override
@@ -150,7 +154,7 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(userId, event.getInitiator().getId())) {
             throw new RuntimeException();
         }
-        return EventMapper.toEventFullDto(event);
+        return eventMapper.toEventFullDto(event);
     }
 
     @Override
@@ -159,7 +163,7 @@ public class EventServiceImpl implements EventService {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new RuntimeException();
         }
-        return EventMapper.toEventFullDto(findById(idEvent));
+        return eventMapper.toEventFullDto(findById(idEvent));
     }
 
     private Specification<Event> eventDescriptionContainsText(String text) {
@@ -266,6 +270,6 @@ public class EventServiceImpl implements EventService {
                 .and(hasUsers)
                 .and(hasStates)
                 .and(dateRange);
-        return EventMapper.toEventFullDtoList(eventRepository.findAll(spec, page));
+        return eventMapper.toEventFullDtoList(eventRepository.findAll(spec, page));
     }
 }

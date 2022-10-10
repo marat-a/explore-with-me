@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CompilationMapper {
 
+    EventMapper eventMapper;
+
     public static Compilation toCompilation(NewCompilationDto newCompilationDto, EventService eventService) {
         List<Long> eventsId = newCompilationDto.getEvents();
         List<Event> events = new ArrayList<>();
@@ -28,9 +30,9 @@ public class CompilationMapper {
         return compilation;
     }
 
-    public static CompilationDto toCompilationDto(Compilation compilation) {
+    public CompilationDto toCompilationDto(Compilation compilation) {
         List<Event> events = new ArrayList<>(compilation.getEvents());
-        List<EventShortDto> eventsDto = EventMapper.toEventShortDtoList(events);
+        List<EventShortDto> eventsDto = eventMapper.toEventShortDtoList(events);
         return new CompilationDto(
                 eventsDto,
                 compilation.getId(),
@@ -38,9 +40,9 @@ public class CompilationMapper {
                 compilation.getTitle());
     }
 
-    public static List<CompilationDto> toCompilationDtoList(List<Compilation> compilations) {
+    public List<CompilationDto> toCompilationDtoList(List<Compilation> compilations) {
         return compilations.stream()
-                .map(CompilationMapper::toCompilationDto)
+                .map(this::toCompilationDto)
                 .collect(Collectors.toList());
     }
 }
