@@ -11,17 +11,17 @@ services:
       - stats-server
     environment:
       - STATISTIC_SERVER_URL=http://stats-server:9090
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewmservice?user=user&password=user&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewmservice
 
   ewm-db:
     image: postgres:14-alpine
     container_name: "ewm-db"
     ports:
-      - "5532:5432"
+      - "6541:5432"
     environment:
-      POSTGRES_DB: "ewmservice"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "user"
+      - POSTGRES_DB=ewmservice
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=user
 
   stats-server:
     build: ./stat-server
@@ -31,14 +31,14 @@ services:
     depends_on:
       - stats-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats-db?user=user&password=user&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats-db
 
   stats-db:
     image: postgres:14-alpine
     container_name: "stats-db"
     ports:
-      - "5633:5432"
+      - "6542:5432"
     environment:
-      POSTGRES_DB: "stats-db"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "user"
+      - POSTGRES_DB=stats-db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=user
