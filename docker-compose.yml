@@ -8,7 +8,7 @@ services:
     depends_on:
       - explore-stats-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/explore-stats
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/explore-stats-db
 
   explore-stats-db:
     image: postgres:14-alpine
@@ -16,7 +16,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: "explore-stats"
+      POSTGRES_DB: "explore-stats-db"
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "user"
 
