@@ -29,7 +29,7 @@ services:
       - explore-main-db
     environment:
       - STATISTIC_SERVER_URL=http://localhost:9090
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/explore-main-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/explore-main-db
 
   explore-main-db:
     image: postgres:14-alpine
