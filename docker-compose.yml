@@ -19,7 +19,7 @@ services:
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_DB=ewmservice
+      - DB_NAME=ewmservice
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=user
 
@@ -39,7 +39,7 @@ services:
     ports:
       - "5434:5432"
     environment:
-      - POSTGRES_DB=stats-db
+      - DB_NAME=stats-db
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=user
 
