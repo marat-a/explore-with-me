@@ -14,6 +14,7 @@ import ru.practicum.mainserver.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+
 @AllArgsConstructor
 @RestController
 public class PublicEventController {
