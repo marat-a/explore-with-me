@@ -58,7 +58,7 @@ public class StatsClient {
             uris.add("/events/" + event.getId());
         }
         Map<Long, ViewStats> viewStats = getViewStats(
-                LocalDateTime.MAX.format(formatter),
+                LocalDateTime.of(1900, 01,01, 0,0,1).format(formatter),
                 LocalDateTime.now().format(formatter),
                 uris,
                 false);
