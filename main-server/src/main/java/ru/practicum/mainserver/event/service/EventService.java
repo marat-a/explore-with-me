@@ -22,7 +22,6 @@ public interface EventService {
 
     EventFullDto cancelEvent(long userId, long eventId);
 
-    List<Event> addViews(List<Event> events);
 
     List<EventFullDto> getEventWithFilterForAdmin(Integer[] users, EventState[] states, Integer[] categories, String rangeStart, String rangeEnd, int from, int size);
 
@@ -34,5 +33,4 @@ public interface EventService {
 
     EventFullDto add(NewEventDto newEventDto, long userId);
 
-    Long getEventViews(Event event);
 }

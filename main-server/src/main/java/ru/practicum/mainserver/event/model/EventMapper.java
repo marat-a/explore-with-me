@@ -24,7 +24,6 @@ public class EventMapper {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     UserService userService;
     StatsClient statsClient;
-    EventService eventService;
 
     public EventShortDto toEventShortDto(Event event) {
         String uri = "/events/" + event.getId();
@@ -37,7 +36,7 @@ public class EventMapper {
         eventShortDto.setCategory(CategoryMapper.toCategoryDto(event.getCategory()));
         eventShortDto.setInitiator(UserMapper.toUserShortDto(event.getInitiator()));
         eventShortDto.setConfirmedRequests(event.getConfirmedRequests());
-        eventShortDto.setViews(event.getViews() == null ? eventService.getEventViews(event) : event.getViews());
+        eventShortDto.setViews(event.getViews() == null ? statsClient.getEventViews(event) : event.getViews());
         return eventShortDto;
     }
 
@@ -52,7 +51,7 @@ public class EventMapper {
         eventFullDto.setCategory(CategoryMapper.toCategoryDto(event.getCategory()));
         eventFullDto.setInitiator(UserMapper.toUserShortDto(event.getInitiator()));
         eventFullDto.setConfirmedRequests(event.getConfirmedRequests());
-        eventFullDto.setViews(event.getViews() == null ? eventService.getEventViews(event) : event.getViews());
+        eventFullDto.setViews(event.getViews() == null ? statsClient.getEventViews(event) : event.getViews());
         eventFullDto.setCreatedOn(event.getCreatedOn().format(FORMATTER));
         eventFullDto.setDescription(event.getDescription());
         eventFullDto.setLocation(event.getLocation());

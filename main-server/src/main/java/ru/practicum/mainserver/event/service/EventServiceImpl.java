@@ -245,41 +245,16 @@ public class EventServiceImpl implements EventService {
             case EVENT_DATE:
                 page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
                 events = eventRepository.findAll(spec, page);
-                return addViews(events);
+                return statsClient.addViews(events);
             case VIEWS:
                 page = PageRequest.of(from, size);
                 events = eventRepository.findAll(spec, page);
-                addViews(events);
+                statsClient.addViews(events);
                 events.sort(Comparator.comparing(Event::getViews));
                 return events;
             default:
                 throw new RuntimeException();
         }
-    }
-
-    @Override
-    public List<Event> addViews(List<Event> events) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<String> uris = new ArrayList<>();
-        for (Event event : events) {
-            uris.add("/events/" + event.getId());
-        }
-        Map<Long, ViewStats> viewStats = statsClient.getViewStats(
-                LocalDateTime.MAX.format(formatter),
-                LocalDateTime.now().format(formatter),
-                uris,
-                false);
-        if (viewStats.size() != 0) {
-            for (Event event : events) {
-                event.setViews(viewStats.get(event.getId()).getHits());
-            }
-        }
-        return events;
-    }
-
-    @Override
-    public Long getEventViews(Event event) {
-        return addViews(List.of(event)).get(0).getViews();
     }
 
     private Specification<Event> getEventSpecification(String text,
