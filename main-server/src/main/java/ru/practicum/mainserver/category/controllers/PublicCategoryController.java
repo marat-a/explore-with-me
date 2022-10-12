@@ -1,11 +1,11 @@
 package ru.practicum.mainserver.category.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryDto;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController

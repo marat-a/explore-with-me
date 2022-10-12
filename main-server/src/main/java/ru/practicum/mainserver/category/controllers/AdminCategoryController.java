@@ -1,6 +1,7 @@
 package ru.practicum.mainserver.category.controllers;
 
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryDto;
@@ -11,17 +12,18 @@ import javax.validation.Valid;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/admin/categories")
+@Validated
 public class AdminCategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
-    public CategoryDto addCategory(@RequestBody @Valid NewCategoryDto newCategoryDto) {
+    public CategoryDto addCategory(@RequestBody NewCategoryDto newCategoryDto) {
         return categoryService.addCategory(newCategoryDto);
     }
 
     @PatchMapping()
-    public CategoryDto updateCategory(@RequestBody @Valid CategoryDto categoryDto) {
+    public CategoryDto updateCategory(@RequestBody CategoryDto categoryDto) {
         return categoryService.updateCategory(categoryDto);
     }
 

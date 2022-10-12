@@ -6,8 +6,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.mainserver.client.dto.EndpointHit;
-import ru.practicum.mainserver.client.dto.ViewStats;
+import ru.practicum.mainserver.client.model.EndpointHit;
+import ru.practicum.mainserver.client.model.ViewStats;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -35,7 +35,7 @@ public class StatsClient {
         rest.postForObject(serverUrl + "/hit", hit, EndpointHit.class);
     }
 
-    public List<ViewStats> getStatsResponse(String start, String end, Set<String> uris, boolean unique) {
+    public List<ViewStats> getStatsResponse(String start, String end, List<String> uris, boolean unique) {
         String requestUri = serverUrl + "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
 
         Map<String, String> urlParam = new HashMap<>();
@@ -50,10 +50,17 @@ public class StatsClient {
     }
 
 
-    public Map<String, ViewStats> getViewStats(String start, String end, Set<String> uri, boolean unique) {
+    public Map<Long, ViewStats> getViewStats(String start, String end, List<String> uri, boolean unique) {
         List<ViewStats> response = getStatsResponse(start, end, uri, false);
-        Map<String, ViewStats> viewStats = new HashMap<>();
-        response.forEach(element -> viewStats.put(element.getUri(), element));
+        Map<Long, ViewStats> viewStats = new HashMap<>();
+        if (response.size() != 0) {
+            response.forEach(element -> viewStats.put(extractIdFromUriString(element.getUri()), element));
+        }
+
         return viewStats;
+    }
+
+    public Long extractIdFromUriString(String uri) {
+        return Long.valueOf(uri.replace("/events/", "").trim());
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.mainserver.event.controllers;
 
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.event.model.AdminUpdateEventRequest;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
+@Validated
 public class AdminEventController {
 
     EventService eventService;

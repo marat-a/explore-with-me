@@ -1,13 +1,14 @@
 package ru.practicum.mainserver.compilation.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.mainserver.event.model.EventShortDto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompilationDto   {
@@ -17,5 +18,7 @@ public class CompilationDto   {
 
   private Boolean pinned;
 
+  @NotBlank
+  @Size(min = 3, max = 120)
   private String title;  
 }

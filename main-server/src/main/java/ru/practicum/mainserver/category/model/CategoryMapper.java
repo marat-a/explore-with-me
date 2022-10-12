@@ -20,7 +20,7 @@ public class CategoryMapper {
         return new Category(null, createDto.getName());
     }
 
-    public static List<CategoryDto> toCategoryDtoList (List<Category> categories){
+    public static List<CategoryDto> toCategoryDtoList(List<Category> categories) {
         return categories.stream().map(CategoryMapper::toCategoryDto).collect(Collectors.toList());
     }
 }

@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.mainserver.common.validators.PlusTwoHours;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Data
@@ -38,6 +39,7 @@ public class NewEventDto {
     private Boolean paid;
 
     @Value("0")
+    @PositiveOrZero
     private Long participantLimit;
 
     @Value("true")

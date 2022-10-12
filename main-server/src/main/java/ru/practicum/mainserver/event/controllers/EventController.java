@@ -1,6 +1,7 @@
 package ru.practicum.mainserver.event.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.event.model.EventFullDto;
 import ru.practicum.mainserver.event.model.NewEventDto;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class EventController {
 
     private final EventService eventService;

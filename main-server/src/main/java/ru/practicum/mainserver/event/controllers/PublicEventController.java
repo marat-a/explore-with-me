@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.mainserver.client.StatsClient;
+import ru.practicum.mainserver.common.enums.SortType;
+import ru.practicum.mainserver.common.validators.SortTypeSubset;
 import ru.practicum.mainserver.event.model.Event;
 import ru.practicum.mainserver.event.model.EventFullDto;
 import ru.practicum.mainserver.event.model.EventMapper;
@@ -30,7 +32,8 @@ public class PublicEventController {
                                                   @RequestParam(required = false) String rangeStart,
                                                   @RequestParam(required = false) String rangeEnd,
                                                   @RequestParam(required = false) Boolean onlyAvailable,
-                                                  @RequestParam(required = false) String sort,
+                                                  @RequestParam(required = false)
+                                                      @SortTypeSubset(anyOf = {SortType.VIEWS, SortType.EVENT_DATE}) SortType sort,
                                                   @RequestParam(required = false, defaultValue = "0") int from,
                                                   @RequestParam(required = false, defaultValue = "10") int size,
                                                   HttpServletRequest request) {

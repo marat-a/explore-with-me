@@ -10,7 +10,9 @@ import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.category.model.Category_;
 import ru.practicum.mainserver.client.StatsClient;
+import ru.practicum.mainserver.client.model.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.common.enums.SortType;
 import ru.practicum.mainserver.event.EventRepository;
 import ru.practicum.mainserver.event.model.*;
 import ru.practicum.mainserver.user.model.User;
@@ -23,9 +25,7 @@ import javax.persistence.criteria.JoinType;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -44,8 +44,11 @@ public class EventServiceImpl implements EventService {
         event.setCreatedOn(LocalDateTime.now());
         event.setConfirmedRequests(0L);
         event.setState(EventState.PENDING);
+        event.setViews(0L);
         return eventMapper.toEventFullDto(eventRepository.save(event));
     }
+
+
 
     public Event updateEvent(Event event, Event updateRequest) {
         if (updateRequest.getEventDate() != null) {
@@ -224,19 +227,69 @@ public class EventServiceImpl implements EventService {
     }
 
     public List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable,
-                                           String sort, String rangeStart, String rangeEnd, int from, int size) {
+                                           SortType sort, String rangeStart, String rangeEnd, int from, int size) {
         if (sort == null) {
             throw new RuntimeException();
         }
         Pageable page;
-        if (sort.equals("EVENT_DATE")) {
-            page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
-        } else if (sort.equals("VIEWS")) {
-            page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "views"));
-        } else {
-            throw new RuntimeException();
-        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        Specification<Event> spec = getEventSpecification(
+                text,
+                categories,
+                paid,
+                onlyAvailable,
+                rangeStart,
+                rangeEnd, formatter);
+        List<Event> events;
+        switch (sort) {
+            case EVENT_DATE:
+                page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
+                events = eventRepository.findAll(spec, page);
+                return addViews(events);
+            case VIEWS:
+                page = PageRequest.of(from, size);
+                events = eventRepository.findAll(spec, page);
+                addViews(events);
+                events.sort(Comparator.comparing(Event::getViews));
+                return events;
+            default:
+                throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public List<Event> addViews(List<Event> events) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<String> uris = new ArrayList<>();
+        for (Event event : events) {
+            uris.add("/events/" + event.getId());
+        }
+        Map<Long, ViewStats> viewStats = statsClient.getViewStats(
+                LocalDateTime.MAX.format(formatter),
+                LocalDateTime.now().format(formatter),
+                uris,
+                false);
+        if (viewStats.size() != 0) {
+            for (Event event : events) {
+                event.setViews(viewStats.get(event.getId()).getHits());
+            }
+        }
+        return events;
+    }
+
+    @Override
+    public Long getEventViews(Event event) {
+        return addViews(List.of(event)).get(0).getViews();
+    }
+
+    private Specification<Event> getEventSpecification(String text,
+                                                       Integer[] categories,
+                                                       Boolean paid,
+                                                       Boolean onlyAvailable,
+                                                       String rangeStart,
+                                                       String rangeEnd,
+                                                       DateTimeFormatter formatter) {
+
         Specification<Event> containsText = text == null ? null : eventDescriptionContainsText(text)
                 .or(eventAnnotationContainsText(text));
         Specification<Event> isPaid = paid == null ? null : eventIsPaid(paid);
@@ -246,13 +299,11 @@ public class EventServiceImpl implements EventService {
                 eventsAfter() : eventsBetween(
                 LocalDateTime.parse(rangeStart, formatter),
                 LocalDateTime.parse(rangeEnd, formatter));
-
-        Specification<Event> spec = Specification.where(containsText)
+        return Specification.where(containsText)
                 .and(isPaid)
                 .and(hasCategory)
                 .and(isAvailable)
                 .and(dateRange);
-        return eventRepository.findAll(spec, page);
     }
 
     public List<EventFullDto> getEventWithFilterForAdmin(Integer[] users, EventState[] states, Integer[] categories,

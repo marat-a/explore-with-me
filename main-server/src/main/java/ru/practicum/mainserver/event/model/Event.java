@@ -53,6 +53,6 @@ public class Event {
     private EventState state;
 
     private String title;
-
+    @Transient
     private Long views;
 }

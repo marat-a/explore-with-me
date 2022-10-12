@@ -5,8 +5,9 @@ import org.springframework.stereotype.Component;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.client.StatsClient;
-import ru.practicum.mainserver.client.dto.ViewStats;
+import ru.practicum.mainserver.client.model.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.event.service.EventService;
 import ru.practicum.mainserver.user.model.UserMapper;
 import ru.practicum.mainserver.user.service.UserService;
 
@@ -23,6 +24,7 @@ public class EventMapper {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     UserService userService;
     StatsClient statsClient;
+    EventService eventService;
 
     public EventShortDto toEventShortDto(Event event) {
         String uri = "/events/" + event.getId();
@@ -35,12 +37,7 @@ public class EventMapper {
         eventShortDto.setCategory(CategoryMapper.toCategoryDto(event.getCategory()));
         eventShortDto.setInitiator(UserMapper.toUserShortDto(event.getInitiator()));
         eventShortDto.setConfirmedRequests(event.getConfirmedRequests());
-        eventShortDto.setViews(statsClient.getViewStats(
-                        event.getCreatedOn().format(FORMATTER),
-                        LocalDateTime.now().format(FORMATTER),
-                        Set.of(uri),
-                        false)
-                .getOrDefault(uri, new ViewStats("", "", 0L)).getHits());
+        eventShortDto.setViews(event.getViews() == null ? eventService.getEventViews(event) : event.getViews());
         return eventShortDto;
     }
 
@@ -55,12 +52,7 @@ public class EventMapper {
         eventFullDto.setCategory(CategoryMapper.toCategoryDto(event.getCategory()));
         eventFullDto.setInitiator(UserMapper.toUserShortDto(event.getInitiator()));
         eventFullDto.setConfirmedRequests(event.getConfirmedRequests());
-        eventFullDto.setViews(statsClient.getViewStats(
-                        event.getCreatedOn().format(FORMATTER),
-                        LocalDateTime.now().format(FORMATTER),
-                        Set.of(uri),
-                        false)
-                .getOrDefault(uri, new ViewStats("", "", 0L)).getHits());
+        eventFullDto.setViews(event.getViews() == null ? eventService.getEventViews(event) : event.getViews());
         eventFullDto.setCreatedOn(event.getCreatedOn().format(FORMATTER));
         eventFullDto.setDescription(event.getDescription());
         eventFullDto.setLocation(event.getLocation());

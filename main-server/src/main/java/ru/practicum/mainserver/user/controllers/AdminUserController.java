@@ -2,6 +2,7 @@ package ru.practicum.mainserver.user.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.user.model.NewUserDto;
 import ru.practicum.mainserver.user.service.UserService;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
+@Validated
 public class AdminUserController {
     private final UserService userService;
 
@@ -27,7 +29,7 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public UserDto addUser(@RequestBody @Valid NewUserDto newUserDto) {
+    public UserDto addUser(@RequestBody NewUserDto newUserDto) {
         User user = UserMapper.toUser(newUserDto);
         return userService.addUser(user);
     }

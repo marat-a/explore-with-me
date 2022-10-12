@@ -1,16 +1,14 @@
 package ru.practicum.mainserver.event.service;
 
-import ru.practicum.mainserver.client.dto.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.common.enums.SortType;
 import ru.practicum.mainserver.event.model.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface EventService {
 
-    List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable, String sort, String rangeStart, String rangeEnd, int from, int size);
+    List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable, SortType sort, String rangeStart, String rangeEnd, int from, int size);
 
     Event findById(Long id);
 
@@ -24,6 +22,8 @@ public interface EventService {
 
     EventFullDto cancelEvent(long userId, long eventId);
 
+    List<Event> addViews(List<Event> events);
+
     List<EventFullDto> getEventWithFilterForAdmin(Integer[] users, EventState[] states, Integer[] categories, String rangeStart, String rangeEnd, int from, int size);
 
     EventFullDto updateEventByAdmin(AdminUpdateEventRequest updateRequest, long eventId);
@@ -34,5 +34,5 @@ public interface EventService {
 
     EventFullDto add(NewEventDto newEventDto, long userId);
 
-
+    Long getEventViews(Event event);
 }

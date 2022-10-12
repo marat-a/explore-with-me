@@ -1,4 +1,4 @@
-package ru.practicum.mainserver.client.dto;
+package ru.practicum.mainserver.client.model;
 
 import lombok.Builder;
 import lombok.Getter;
