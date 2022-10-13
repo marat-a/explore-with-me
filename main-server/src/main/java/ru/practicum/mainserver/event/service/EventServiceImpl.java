@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.category.model.Category_;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class EventServiceImpl implements EventService {
     EventRepository eventRepository;
     UserService userService;
