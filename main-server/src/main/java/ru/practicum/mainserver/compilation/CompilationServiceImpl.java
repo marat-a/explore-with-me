@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.compilation.model.Compilation;
 import ru.practicum.mainserver.compilation.model.CompilationDto;
 import ru.practicum.mainserver.compilation.model.CompilationMapper;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationRepository compilationRepository;
@@ -40,12 +42,11 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public void deleteEventToCompilation(long compId, long eventId) {
+    public void deleteEventFromCompilation(long compId, long eventId) {
         Compilation compilation = findById(compId);
         Event event = eventService.findById(eventId);
         List<Event> events = compilation.getEvents();
         events.remove(event);
-        compilation.setEvents(events);
     }
 
     @Override

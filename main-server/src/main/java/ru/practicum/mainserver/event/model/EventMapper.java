@@ -5,16 +5,13 @@ import org.springframework.stereotype.Component;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.client.StatsClient;
-import ru.practicum.mainserver.client.model.ViewStats;
 import ru.practicum.mainserver.common.enums.EventState;
-import ru.practicum.mainserver.event.service.EventService;
 import ru.practicum.mainserver.user.model.UserMapper;
 import ru.practicum.mainserver.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -26,7 +23,6 @@ public class EventMapper {
     StatsClient statsClient;
 
     public EventShortDto toEventShortDto(Event event) {
-        String uri = "/events/" + event.getId();
         EventShortDto eventShortDto = new EventShortDto();
         eventShortDto.setId(event.getId());
         eventShortDto.setEventDate(event.getEventDate().format(FORMATTER));
@@ -41,7 +37,7 @@ public class EventMapper {
     }
 
     public EventFullDto toEventFullDto(Event event) {
-        String uri = "/events/" + event.getId();
+
         EventFullDto eventFullDto = new EventFullDto();
         eventFullDto.setId(event.getId());
         eventFullDto.setEventDate(event.getEventDate().format(FORMATTER));
@@ -65,7 +61,7 @@ public class EventMapper {
 
     public Event newToEvent(NewEventDto newEventDto, CategoryService categoryService) {
         Event event = new Event();
-
+        event.setLocation(newEventDto.getLocation());
         event.setAnnotation(newEventDto.getAnnotation());
         event.setCategory(categoryService.getCategory(newEventDto.getCategory()));
         event.setDescription(newEventDto.getDescription());

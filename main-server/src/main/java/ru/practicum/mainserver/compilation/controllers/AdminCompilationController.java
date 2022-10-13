@@ -26,7 +26,7 @@ public class AdminCompilationController {
 
     @DeleteMapping("/admin/compilations/{compId}/events/{eventId}")
     public void deleteEventToCompilation(@PathVariable long compId, @PathVariable long eventId) {
-        compilationService.deleteEventToCompilation(compId, eventId);
+        compilationService.deleteEventFromCompilation(compId, eventId);
     }
 
     @PatchMapping("/admin/compilations/{compId}/pin")

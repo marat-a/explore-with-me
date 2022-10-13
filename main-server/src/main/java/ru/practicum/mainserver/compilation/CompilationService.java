@@ -1,6 +1,5 @@
 package ru.practicum.mainserver.compilation;
 
-import ru.practicum.mainserver.compilation.model.Compilation;
 import ru.practicum.mainserver.compilation.model.CompilationDto;
 import ru.practicum.mainserver.compilation.model.NewCompilationDto;
 
@@ -13,7 +12,7 @@ public interface CompilationService {
 
     void pinCompilation(long compId);
 
-    void deleteEventToCompilation(long compId, long eventId);
+    void deleteEventFromCompilation(long compId, long eventId);
 
     void addEventToCompilation(long compId, long eventId);
 
