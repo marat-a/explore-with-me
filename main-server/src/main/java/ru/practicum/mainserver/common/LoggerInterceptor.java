@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.persistence.Column;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
@@ -18,11 +17,12 @@ public class LoggerInterceptor implements HandlerInterceptor {
             HttpServletResponse response,
             Object handler) {
 
-        log.info("[preHandle][" + request + "]" + "[" + request.getMethod()
+        log.info("[preHandle][" + request.getMethod()
                 + "]" + request.getRequestURI() + getParameters(request));
 
         return true;
     }
+
     private String getParameters(HttpServletRequest request) {
         StringBuilder posted = new StringBuilder();
         Enumeration<?> e = request.getParameterNames();
@@ -37,28 +37,11 @@ public class LoggerInterceptor implements HandlerInterceptor {
             }
             String curr = (String) e.nextElement();
             posted.append(curr).append("=");
-            if (curr.contains("password")
-                    || curr.contains("pass")
-                    || curr.contains("pwd")) {
-                posted.append("*****");
-            } else {
-                posted.append(request.getParameter(curr));
-            }
+            posted.append(request.getParameter(curr));
+
         }
-        String ip = request.getHeader("X-FORWARDED-FOR");
-        String ipAddr = (ip == null) ? getRemoteAddr(request) : ip;
-        if (ipAddr!=null && !ipAddr.equals("")) {
-            posted.append("&_psip=").append(ipAddr);
-        }
+        posted.append("  ip=").append(request.getRemoteAddr());
         return posted.toString();
 
-    }
-    private String getRemoteAddr(HttpServletRequest request) {
-        String ipFromHeader = request.getHeader("X-FORWARDED-FOR");
-        if (ipFromHeader != null && ipFromHeader.length() > 0) {
-            log.debug("ip from proxy - X-FORWARDED-FOR : " + ipFromHeader);
-            return ipFromHeader;
-        }
-        return request.getRemoteAddr();
     }
 }

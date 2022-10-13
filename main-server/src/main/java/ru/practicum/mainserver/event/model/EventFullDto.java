@@ -1,14 +1,15 @@
 package ru.practicum.mainserver.event.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.mainserver.category.model.CategoryDto;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.user.model.UserShortDto;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class EventFullDto {
+
     private Long id;
 
     private String annotation;
@@ -29,7 +30,7 @@ public class EventFullDto {
 
     private Boolean paid;
 
-    private Integer participantLimit;
+    private Long participantLimit;
 
     private String publishedOn;
 
@@ -40,4 +41,5 @@ public class EventFullDto {
     private String title;
 
     private Long views;
+
 }
