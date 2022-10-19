@@ -3,6 +3,7 @@ package ru.practicum.mainserver.event.model;
 import lombok.*;
 import ru.practicum.mainserver.category.model.CategoryDto;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.location.Location;
 import ru.practicum.mainserver.user.model.UserShortDto;
 
 @Getter

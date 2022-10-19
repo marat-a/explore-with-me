@@ -1,5 +1,6 @@
 package ru.practicum.mainserver.event.service;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,8 @@ import ru.practicum.mainserver.user.model.User;
 import ru.practicum.mainserver.user.model.User_;
 import ru.practicum.mainserver.user.service.UserService;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -34,11 +37,13 @@ import java.util.Optional;
 @AllArgsConstructor
 @Transactional
 public class EventServiceImpl implements EventService {
-    EventRepository eventRepository;
-    UserService userService;
-    CategoryService categoryService;
-    StatsClient statsClient;
-    EventMapper eventMapper;
+    private EventRepository eventRepository;
+    private UserService userService;
+    private CategoryService categoryService;
+    private StatsClient statsClient;
+    private EventMapper eventMapper;
+    @PersistenceContext
+    EntityManager entityManager;
 
 
     @Override
@@ -69,8 +74,8 @@ public class EventServiceImpl implements EventService {
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());
         }
-        if (updateRequest.getLocation() != null) {
-            event.setLocation(updateRequest.getLocation());
+        if (updateRequest.getCoordinates() != null) {
+            event.setCoordinates(updateRequest.getCoordinates());
         }
         if (updateRequest.getParticipantLimit() != null) {
             event.setParticipantLimit(updateRequest.getParticipantLimit());
@@ -194,6 +199,17 @@ public class EventServiceImpl implements EventService {
         return (root, query, builder) -> builder.between(root.get("eventDate"), rangeStart, rangeEnd);
     }
 
+    private Specification<Event> eventsDistanceLessThen(double lon, double lat,  Double distance) {
+
+        return (root, query, builder) -> builder.isTrue(builder.function(
+                        "ST_DWithin",
+                        Boolean.class,
+                        root.get(Event_.coordinates),
+                        builder.literal(eventMapper.geometryFactory.createPoint(new Coordinate(lon, lat))),
+                        builder.literal(distance)));
+    }
+
+
     private Specification<Event> eventsAfter() {
         return (root, query, builder) -> builder.greaterThan(root.get("eventDate"), LocalDateTime.now());
     }
@@ -229,8 +245,18 @@ public class EventServiceImpl implements EventService {
         return (root, query, builder) -> root.get("state").in((Object[]) states);
     }
 
-    public List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable,
-                                           SortType sort, String rangeStart, String rangeEnd, int from, int size) {
+    public List<Event> getEventsWithFilter(String text,
+                                           Integer[] categories,
+                                           Boolean paid,
+                                           Boolean onlyAvailable,
+                                           String rangeStart,
+                                           String rangeEnd,
+                                           SortType sort,
+                                           int from,
+                                           int size,
+                                           Double lat,
+                                           Double lon,
+                                           Double distance) {
         if (sort == null) {
             throw new RuntimeException();
         }
@@ -242,7 +268,11 @@ public class EventServiceImpl implements EventService {
                 paid,
                 onlyAvailable,
                 rangeStart,
-                rangeEnd, formatter);
+                rangeEnd,
+                lat,
+                lon,
+                distance,
+                formatter);
         List<Event> events;
         switch (sort) {
             case EVENT_DATE:
@@ -255,6 +285,8 @@ public class EventServiceImpl implements EventService {
                 statsClient.addViews(events);
                 events.sort(Comparator.comparing(Event::getViews));
                 return events;
+            case DISTANCE:
+
             default:
                 throw new RuntimeException();
         }
@@ -266,6 +298,9 @@ public class EventServiceImpl implements EventService {
                                                        Boolean onlyAvailable,
                                                        String rangeStart,
                                                        String rangeEnd,
+                                                       Double lat,
+                                                       Double lon,
+                                                       Double distance,
                                                        DateTimeFormatter formatter) {
 
         Specification<Event> containsText = text == null ? null : eventDescriptionContainsText(text)
@@ -277,11 +312,13 @@ public class EventServiceImpl implements EventService {
                 eventsAfter() : eventsBetween(
                 LocalDateTime.parse(rangeStart, formatter),
                 LocalDateTime.parse(rangeEnd, formatter));
+        Specification<Event> eventsDistanceLessThen = (lat == null || lon ==0 || distance == 0) ? null : eventsDistanceLessThen(lat, lon, distance);
         return Specification.where(containsText)
                 .and(isPaid)
                 .and(hasCategory)
                 .and(isAvailable)
-                .and(dateRange);
+                .and(dateRange)
+                .and(eventsDistanceLessThen);
     }
 
     public List<EventFullDto> getEventWithFilterForAdmin(Integer[] users, EventState[] states, Integer[] categories,

@@ -11,7 +11,6 @@ import ru.practicum.mainserver.common.validators.SortTypeSubset;
 import ru.practicum.mainserver.event.model.Event;
 import ru.practicum.mainserver.event.model.EventFullDto;
 import ru.practicum.mainserver.event.model.EventMapper;
-import ru.practicum.mainserver.event.model.EventShortDto;
 import ru.practicum.mainserver.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,30 +25,40 @@ public class PublicEventController {
     EventMapper eventMapper;
 
     @GetMapping("/events")
-    public List<EventShortDto> getEventWithFilter(@RequestParam(required = false) String text,
+    public List<EventFullDto> getEventWithFilter(@RequestParam(required = false) String text,
                                                   @RequestParam(required = false) Integer[] categories,
                                                   @RequestParam(required = false) Boolean paid,
+                                                  @RequestParam(required = false) Boolean onlyAvailable,
                                                   @RequestParam(required = false) String rangeStart,
                                                   @RequestParam(required = false) String rangeEnd,
-                                                  @RequestParam(required = false) Boolean onlyAvailable,
+
                                                   @RequestParam(required = false)
-                                                      @SortTypeSubset(anyOf = {SortType.VIEWS, SortType.EVENT_DATE}) SortType sort,
+                                                      @SortTypeSubset(anyOf = {
+                                                              SortType.VIEWS,
+                                                              SortType.EVENT_DATE,
+                                                              SortType.DISTANCE}) SortType sort,
                                                   @RequestParam(required = false, defaultValue = "0") int from,
                                                   @RequestParam(required = false, defaultValue = "10") int size,
+                                                  @RequestParam(required = false) Double lon,
+                                                  @RequestParam(required = false) Double lat,
+                                                  @RequestParam(required = false) Double distance,
                                                   HttpServletRequest request) {
         List<Event> events = eventService.getEventsWithFilter(
                 text,
                 categories,
                 paid,
                 onlyAvailable,
-                sort,
                 rangeStart,
                 rangeEnd,
+                sort,
                 from,
-                size
+                size,
+                lon,
+                lat,
+                distance
         );
         statsClient.sendHit("App", request.getRequestURI(), request.getRemoteAddr());
-        return eventMapper.toEventShortDtoList(events);
+        return eventMapper.toEventFullDtoList(events);
     }
 
     @GetMapping("/events/{eventId}")

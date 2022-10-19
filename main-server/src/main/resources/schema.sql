@@ -31,8 +31,7 @@ CREATE TABLE IF NOT EXISTS events (
                                       state VARCHAR(10) DEFAULT 'PENDING' NOT NULL,
                                       title VARCHAR(4000) NOT NULL,
                                       confirmed_requests  BIGINT,
-                                      location_lat NUMERIC,
-                                      location_lon NUMERIC,
+                                      coordinates geography(POINT, 4326),
                                       CONSTRAINT pk_event PRIMARY KEY (id),
                                       CONSTRAINT FK_EVENT_ON_CATEGORY FOREIGN KEY (category_id) REFERENCES categories (id),
                                       CONSTRAINT FK_EVENT_ON_USER FOREIGN KEY (initiator_id) REFERENCES users (id)

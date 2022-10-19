@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import ru.practicum.mainserver.common.validators.PlusTwoHours;
+import ru.practicum.mainserver.location.Location;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;

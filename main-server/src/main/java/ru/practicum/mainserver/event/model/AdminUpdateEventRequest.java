@@ -3,6 +3,7 @@ package ru.practicum.mainserver.event.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.mainserver.location.Location;
 
 @Data
 @NoArgsConstructor

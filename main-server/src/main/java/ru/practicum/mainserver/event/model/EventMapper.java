@@ -1,13 +1,19 @@
 package ru.practicum.mainserver.event.model;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.client.StatsClient;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.location.Location;
 import ru.practicum.mainserver.user.model.UserMapper;
-import ru.practicum.mainserver.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,10 +23,16 @@ import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
+@RequiredArgsConstructor
+
 public class EventMapper {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    UserService userService;
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    @Autowired
     StatsClient statsClient;
+    public final int SRID = 4326;
+    public GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), SRID);
+
+
 
     public EventShortDto toEventShortDto(Event event) {
         EventShortDto eventShortDto = new EventShortDto();
@@ -50,7 +62,7 @@ public class EventMapper {
         eventFullDto.setViews(event.getViews() == null ? statsClient.getEventViews(event) : event.getViews());
         eventFullDto.setCreatedOn(event.getCreatedOn().format(FORMATTER));
         eventFullDto.setDescription(event.getDescription());
-        eventFullDto.setLocation(event.getLocation());
+        eventFullDto.setLocation(pointToLocation(event.getCoordinates()));
         eventFullDto.setParticipantLimit(event.getParticipantLimit());
         eventFullDto.setPublishedOn(event.getPublishedOn() == null ? null : event.getPublishedOn().format(FORMATTER));
         eventFullDto.setRequestModeration(event.getRequestModeration());
@@ -61,7 +73,7 @@ public class EventMapper {
 
     public Event newToEvent(NewEventDto newEventDto, CategoryService categoryService) {
         Event event = new Event();
-        event.setLocation(newEventDto.getLocation());
+        event.setCoordinates(newEventDto.getLocation() == null ? null : locationToPoint(newEventDto.getLocation()));
         event.setAnnotation(newEventDto.getAnnotation());
         event.setCategory(categoryService.getCategory(newEventDto.getCategory()));
         event.setDescription(newEventDto.getDescription());
@@ -74,6 +86,16 @@ public class EventMapper {
         return event;
     }
 
+    public Point locationToPoint(Location location) {
+        if (location == null) return null;
+        else return geometryFactory.createPoint(new Coordinate(location.getLon(), location.getLat()));
+    }
+
+    public Location pointToLocation(Point point) {
+        if (point == null) return null;
+        else return new Location(point.getY(), point.getX());
+    }
+
 
     public Event adminUpdateRequestToEvent(AdminUpdateEventRequest updateEventRequest, CategoryService categoryService) {
         Event event = new Event();
@@ -82,7 +104,7 @@ public class EventMapper {
         event.setCategory(categoryService.getCategory(updateEventRequest.getCategory()));
         event.setDescription(updateEventRequest.getDescription());
         event.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), FORMATTER));
-        event.setLocation(updateEventRequest.getLocation());
+        event.setCoordinates(locationToPoint(updateEventRequest.getLocation()));
         event.setPaid(updateEventRequest.getPaid());
         event.setParticipantLimit(updateEventRequest.getParticipantLimit());
 
@@ -107,14 +129,10 @@ public class EventMapper {
     }
 
     public List<EventFullDto> toEventFullDtoList(List<Event> events) {
-        return events.stream()
-                .map(this::toEventFullDto)
-                .collect(Collectors.toList());
+        return events.stream().map(this::toEventFullDto).collect(Collectors.toList());
     }
 
     public List<EventShortDto> toEventShortDtoList(List<Event> events) {
-        return events.stream()
-                .map(this::toEventShortDto)
-                .collect(Collectors.toList());
+        return events.stream().map(this::toEventShortDto).collect(Collectors.toList());
     }
 }

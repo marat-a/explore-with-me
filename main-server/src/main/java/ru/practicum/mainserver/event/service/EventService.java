@@ -8,7 +8,18 @@ import java.util.List;
 
 public interface EventService {
 
-    List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable, SortType sort, String rangeStart, String rangeEnd, int from, int size);
+    List<Event> getEventsWithFilter(String text,
+                                    Integer[] categories,
+                                    Boolean paid,
+                                    Boolean onlyAvailable,
+                                    String rangeStart,
+                                    String rangeEnd,
+                                    SortType sort,
+                                    int from,
+                                    int size,
+                                    Double lat,
+                                    Double lon,
+                                    Double distance);
 
     Event findById(Long id);
 
