@@ -3,6 +3,7 @@ package ru.practicum.mainserver.event.model;
 import lombok.*;
 import ru.practicum.mainserver.category.model.CategoryDto;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.location.model.Coordinates;
 import ru.practicum.mainserver.user.model.UserShortDto;
 
 @Getter
@@ -26,7 +27,7 @@ public class EventFullDto {
 
     private UserShortDto initiator;
 
-    private Location location;
+    private Coordinates coordinates;
 
     private Boolean paid;
 

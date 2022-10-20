@@ -1,6 +1,6 @@
 package ru.practicum.mainserver.event.model;
 
-import lombok.Data;
+import com.vividsolutions.jts.geom.Point;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,8 +22,6 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    private Long userId;
-
     private String annotation;
 
     @OneToOne
@@ -39,8 +37,7 @@ public class Event {
     @OneToOne
     private User initiator;
 
-    @Embedded
-    private Location location;
+    private Point coordinates;
 
     private Boolean paid;
 

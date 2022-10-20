@@ -1,5 +1,6 @@
 package ru.practicum.mainserver.event.service;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -8,21 +9,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.category.CategoryService;
-import ru.practicum.mainserver.category.model.Category;
-import ru.practicum.mainserver.category.model.Category_;
 import ru.practicum.mainserver.client.StatsClient;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.common.enums.SortType;
 import ru.practicum.mainserver.event.EventRepository;
 import ru.practicum.mainserver.event.model.*;
-import ru.practicum.mainserver.user.model.User;
-import ru.practicum.mainserver.user.model.User_;
+import ru.practicum.mainserver.location.model.CoordinatesMapper;
 import ru.practicum.mainserver.user.service.UserService;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import java.text.MessageFormat;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -30,15 +26,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static ru.practicum.mainserver.event.service.EventSpecification.*;
+
 @Service
 @AllArgsConstructor
 @Transactional
 public class EventServiceImpl implements EventService {
-    EventRepository eventRepository;
-    UserService userService;
-    CategoryService categoryService;
-    StatsClient statsClient;
-    EventMapper eventMapper;
+    private EventRepository eventRepository;
+    private UserService userService;
+    private CategoryService categoryService;
+    private StatsClient statsClient;
+    private EventMapper eventMapper;
+    @PersistenceContext
+    EntityManager entityManager;
 
 
     @Override
@@ -69,8 +69,8 @@ public class EventServiceImpl implements EventService {
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());
         }
-        if (updateRequest.getLocation() != null) {
-            event.setLocation(updateRequest.getLocation());
+        if (updateRequest.getCoordinates() != null) {
+            event.setCoordinates(updateRequest.getCoordinates());
         }
         if (updateRequest.getParticipantLimit() != null) {
             event.setParticipantLimit(updateRequest.getParticipantLimit());
@@ -172,65 +172,20 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(findById(idEvent));
     }
 
-    private Specification<Event> eventDescriptionContainsText(String text) {
-        return (root, query, builder) -> builder.like(root.get("description"),
-                MessageFormat.format("%{0}%", text));
-    }
 
-    private Specification<Event> eventAnnotationContainsText(String text) {
-        return (root, query, builder) -> builder.like(root.get("annotation"),
-                MessageFormat.format("%{0}%", text));
-    }
 
-    private Specification<Event> eventIsPaid(Boolean paid) {
-        return (root, query, builder) -> builder.equal(root.get("paid"), paid);
-    }
-
-    private Specification<Event> eventIsAvailable() {
-        return (root, query, builder) -> builder.lessThan(root.get("confirmedRequest"), root.get("participantLimit"));
-    }
-
-    private Specification<Event> eventsBetween(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
-        return (root, query, builder) -> builder.between(root.get("eventDate"), rangeStart, rangeEnd);
-    }
-
-    private Specification<Event> eventsAfter() {
-        return (root, query, builder) -> builder.greaterThan(root.get("eventDate"), LocalDateTime.now());
-    }
-
-    private Specification<Event> eventInCategories(Integer[] categories) {
-        return (root, query, builder) -> {
-            Join<Event, Category> categoryJoin = root.join(Event_.category, JoinType.LEFT);
-            CriteriaBuilder.In<Long> inClause = builder.in(categoryJoin.get(Category_.id));
-            if (categories.length >= 1) {
-                for (long categoryId : categories) {
-                    inClause.value(categoryId);
-                }
-            }
-            return inClause;
-        };
-    }
-
-    private Specification<Event> eventInUsers(Integer[] users) {
-        return (root, query, builder) -> {
-            Join<Event, User> userJoin = root.join(Event_.initiator, JoinType.LEFT);
-            CriteriaBuilder.In<Long> inClause = builder.in(userJoin.get(User_.id));
-            if (users.length >= 1) {
-                for (long userId : users) {
-                    inClause.value(userId);
-                }
-            }
-
-            return inClause;
-        };
-    }
-
-    private Specification<Event> eventInStates(EventState[] states) {
-        return (root, query, builder) -> root.get("state").in((Object[]) states);
-    }
-
-    public List<Event> getEventsWithFilter(String text, Integer[] categories, Boolean paid, Boolean onlyAvailable,
-                                           SortType sort, String rangeStart, String rangeEnd, int from, int size) {
+    public List<EventFullDto> getEventsWithFilter(String text,
+                                           Integer[] categories,
+                                           Boolean paid,
+                                           Boolean onlyAvailable,
+                                           String rangeStart,
+                                           String rangeEnd,
+                                           SortType sort,
+                                           int from,
+                                           int size,
+                                           Double lat,
+                                           Double lon,
+                                           Double distance) {
         if (sort == null) {
             throw new RuntimeException();
         }
@@ -242,19 +197,23 @@ public class EventServiceImpl implements EventService {
                 paid,
                 onlyAvailable,
                 rangeStart,
-                rangeEnd, formatter);
+                rangeEnd,
+                lat,
+                lon,
+                distance,
+                formatter);
         List<Event> events;
         switch (sort) {
             case EVENT_DATE:
                 page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
                 events = eventRepository.findAll(spec, page);
-                return statsClient.addViews(events);
+                return eventMapper.toEventFullDtoList(statsClient.addViews(events));
             case VIEWS:
                 page = PageRequest.of(from, size);
                 events = eventRepository.findAll(spec, page);
                 statsClient.addViews(events);
                 events.sort(Comparator.comparing(Event::getViews));
-                return events;
+                return eventMapper.toEventFullDtoList(events);
             default:
                 throw new RuntimeException();
         }
@@ -266,6 +225,9 @@ public class EventServiceImpl implements EventService {
                                                        Boolean onlyAvailable,
                                                        String rangeStart,
                                                        String rangeEnd,
+                                                       Double lat,
+                                                       Double lon,
+                                                       Double distance,
                                                        DateTimeFormatter formatter) {
 
         Specification<Event> containsText = text == null ? null : eventDescriptionContainsText(text)
@@ -277,11 +239,18 @@ public class EventServiceImpl implements EventService {
                 eventsAfter() : eventsBetween(
                 LocalDateTime.parse(rangeStart, formatter),
                 LocalDateTime.parse(rangeEnd, formatter));
+        Specification<Event> eventsDistanceLessThen =
+                (lat == null || lon == null || distance == 0) ? null :
+                        eventsDistanceLessThen(
+                                CoordinatesMapper.geometryFactory.createPoint(new Coordinate(lon, lat)),
+                                distance
+                        );
         return Specification.where(containsText)
                 .and(isPaid)
                 .and(hasCategory)
                 .and(isAvailable)
-                .and(dateRange);
+                .and(dateRange)
+                .and(eventsDistanceLessThen);
     }
 
     public List<EventFullDto> getEventWithFilterForAdmin(Integer[] users, EventState[] states, Integer[] categories,

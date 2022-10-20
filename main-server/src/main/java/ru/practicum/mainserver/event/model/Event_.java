@@ -1,12 +1,14 @@
 package ru.practicum.mainserver.event.model;
 
-import java.time.LocalDateTime;
-import javax.annotation.Generated;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import com.vividsolutions.jts.geom.Point;
 import ru.practicum.mainserver.category.model.Category;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.user.model.User;
+
+import javax.annotation.Generated;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
+import java.time.LocalDateTime;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(Event.class)
@@ -22,7 +24,7 @@ public abstract class Event_ {
 	public static volatile SingularAttribute<Event, Long> participantLimit;
 	public static volatile SingularAttribute<Event, Boolean> paid;
 	public static volatile SingularAttribute<Event, Boolean> requestModeration;
-	public static volatile SingularAttribute<Event, Location> location;
+	public static volatile SingularAttribute<Event, Point> coordinates;
 	public static volatile SingularAttribute<Event, Long> id;
 	public static volatile SingularAttribute<Event, EventState> state;
 	public static volatile SingularAttribute<Event, Category> category;
@@ -39,7 +41,7 @@ public abstract class Event_ {
 	public static final String PARTICIPANT_LIMIT = "participantLimit";
 	public static final String PAID = "paid";
 	public static final String REQUEST_MODERATION = "requestModeration";
-	public static final String LOCATION = "location";
+	public static final String COORDINATES = "coordinates";
 	public static final String ID = "id";
 	public static final String STATE = "state";
 	public static final String CATEGORY = "category";

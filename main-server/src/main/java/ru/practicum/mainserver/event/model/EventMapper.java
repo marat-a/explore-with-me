@@ -1,26 +1,30 @@
 package ru.practicum.mainserver.event.model;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.practicum.mainserver.category.CategoryService;
 import ru.practicum.mainserver.category.model.CategoryMapper;
 import ru.practicum.mainserver.client.StatsClient;
 import ru.practicum.mainserver.common.enums.EventState;
+import ru.practicum.mainserver.location.model.CoordinatesMapper;
 import ru.practicum.mainserver.user.model.UserMapper;
-import ru.practicum.mainserver.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EventMapper {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    UserService userService;
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     StatsClient statsClient;
+
+    @Autowired
+    public EventMapper(StatsClient statsClient) {
+        this.statsClient = statsClient;
+    }
 
     public EventShortDto toEventShortDto(Event event) {
         EventShortDto eventShortDto = new EventShortDto();
@@ -37,7 +41,6 @@ public class EventMapper {
     }
 
     public EventFullDto toEventFullDto(Event event) {
-
         EventFullDto eventFullDto = new EventFullDto();
         eventFullDto.setId(event.getId());
         eventFullDto.setEventDate(event.getEventDate().format(FORMATTER));
@@ -50,7 +53,7 @@ public class EventMapper {
         eventFullDto.setViews(event.getViews() == null ? statsClient.getEventViews(event) : event.getViews());
         eventFullDto.setCreatedOn(event.getCreatedOn().format(FORMATTER));
         eventFullDto.setDescription(event.getDescription());
-        eventFullDto.setLocation(event.getLocation());
+        eventFullDto.setCoordinates(CoordinatesMapper.pointToCoordinates(event.getCoordinates()));
         eventFullDto.setParticipantLimit(event.getParticipantLimit());
         eventFullDto.setPublishedOn(event.getPublishedOn() == null ? null : event.getPublishedOn().format(FORMATTER));
         eventFullDto.setRequestModeration(event.getRequestModeration());
@@ -61,7 +64,7 @@ public class EventMapper {
 
     public Event newToEvent(NewEventDto newEventDto, CategoryService categoryService) {
         Event event = new Event();
-        event.setLocation(newEventDto.getLocation());
+        event.setCoordinates(newEventDto.getCoordinates() == null ? null : CoordinatesMapper.coordinatesToPoint(newEventDto.getCoordinates()));
         event.setAnnotation(newEventDto.getAnnotation());
         event.setCategory(categoryService.getCategory(newEventDto.getCategory()));
         event.setDescription(newEventDto.getDescription());
@@ -70,30 +73,25 @@ public class EventMapper {
         event.setParticipantLimit(newEventDto.getParticipantLimit());
         event.setTitle(newEventDto.getTitle());
         event.setRequestModeration(newEventDto.getRequestModeration());
-
         return event;
     }
 
 
     public Event adminUpdateRequestToEvent(AdminUpdateEventRequest updateEventRequest, CategoryService categoryService) {
         Event event = new Event();
-
         event.setAnnotation(updateEventRequest.getAnnotation());
         event.setCategory(categoryService.getCategory(updateEventRequest.getCategory()));
         event.setDescription(updateEventRequest.getDescription());
         event.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), FORMATTER));
-        event.setLocation(updateEventRequest.getLocation());
+        event.setCoordinates(CoordinatesMapper.coordinatesToPoint(updateEventRequest.getCoordinates()));
         event.setPaid(updateEventRequest.getPaid());
         event.setParticipantLimit(updateEventRequest.getParticipantLimit());
-
         event.setTitle(updateEventRequest.getTitle());
-
         return event;
     }
 
     public Event updateRequestToEvent(UpdateEventRequest updateEventRequest, CategoryService categoryService) {
         Event event = new Event();
-
         event.setAnnotation(updateEventRequest.getAnnotation());
         event.setCategory(categoryService.getCategory(updateEventRequest.getCategory()));
         event.setDescription(updateEventRequest.getDescription());
@@ -102,19 +100,14 @@ public class EventMapper {
         event.setParticipantLimit(updateEventRequest.getParticipantLimit());
         event.setTitle(updateEventRequest.getTitle());
         event.setState(EventState.PENDING);
-
         return event;
     }
 
     public List<EventFullDto> toEventFullDtoList(List<Event> events) {
-        return events.stream()
-                .map(this::toEventFullDto)
-                .collect(Collectors.toList());
+        return events.stream().map(this::toEventFullDto).collect(Collectors.toList());
     }
 
     public List<EventShortDto> toEventShortDtoList(List<Event> events) {
-        return events.stream()
-                .map(this::toEventShortDto)
-                .collect(Collectors.toList());
+        return events.stream().map(this::toEventShortDto).collect(Collectors.toList());
     }
 }
