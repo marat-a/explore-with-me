@@ -9,29 +9,24 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.category.CategoryService;
-import ru.practicum.mainserver.category.model.Category;
-import ru.practicum.mainserver.category.model.Category_;
 import ru.practicum.mainserver.client.StatsClient;
 import ru.practicum.mainserver.common.enums.EventState;
 import ru.practicum.mainserver.common.enums.SortType;
 import ru.practicum.mainserver.event.EventRepository;
 import ru.practicum.mainserver.event.model.*;
-import ru.practicum.mainserver.user.model.User;
-import ru.practicum.mainserver.user.model.User_;
+import ru.practicum.mainserver.location.model.CoordinatesMapper;
 import ru.practicum.mainserver.user.service.UserService;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static ru.practicum.mainserver.event.service.EventSpecification.*;
 
 @Service
 @AllArgsConstructor
@@ -177,75 +172,9 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(findById(idEvent));
     }
 
-    private Specification<Event> eventDescriptionContainsText(String text) {
-        return (root, query, builder) -> builder.like(root.get("description"),
-                MessageFormat.format("%{0}%", text));
-    }
-
-    private Specification<Event> eventAnnotationContainsText(String text) {
-        return (root, query, builder) -> builder.like(root.get("annotation"),
-                MessageFormat.format("%{0}%", text));
-    }
-
-    private Specification<Event> eventIsPaid(Boolean paid) {
-        return (root, query, builder) -> builder.equal(root.get("paid"), paid);
-    }
-
-    private Specification<Event> eventIsAvailable() {
-        return (root, query, builder) -> builder.lessThan(root.get("confirmedRequest"), root.get("participantLimit"));
-    }
-
-    private Specification<Event> eventsBetween(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
-        return (root, query, builder) -> builder.between(root.get("eventDate"), rangeStart, rangeEnd);
-    }
-
-    private Specification<Event> eventsDistanceLessThen(double lon, double lat,  Double distance) {
-
-        return (root, query, builder) -> builder.isTrue(builder.function(
-                        "ST_DWithin",
-                        Boolean.class,
-                        root.get(Event_.coordinates),
-                        builder.literal(eventMapper.geometryFactory.createPoint(new Coordinate(lon, lat))),
-                        builder.literal(distance)));
-    }
 
 
-    private Specification<Event> eventsAfter() {
-        return (root, query, builder) -> builder.greaterThan(root.get("eventDate"), LocalDateTime.now());
-    }
-
-    private Specification<Event> eventInCategories(Integer[] categories) {
-        return (root, query, builder) -> {
-            Join<Event, Category> categoryJoin = root.join(Event_.category, JoinType.LEFT);
-            CriteriaBuilder.In<Long> inClause = builder.in(categoryJoin.get(Category_.id));
-            if (categories.length >= 1) {
-                for (long categoryId : categories) {
-                    inClause.value(categoryId);
-                }
-            }
-            return inClause;
-        };
-    }
-
-    private Specification<Event> eventInUsers(Integer[] users) {
-        return (root, query, builder) -> {
-            Join<Event, User> userJoin = root.join(Event_.initiator, JoinType.LEFT);
-            CriteriaBuilder.In<Long> inClause = builder.in(userJoin.get(User_.id));
-            if (users.length >= 1) {
-                for (long userId : users) {
-                    inClause.value(userId);
-                }
-            }
-
-            return inClause;
-        };
-    }
-
-    private Specification<Event> eventInStates(EventState[] states) {
-        return (root, query, builder) -> root.get("state").in((Object[]) states);
-    }
-
-    public List<Event> getEventsWithFilter(String text,
+    public List<EventFullDto> getEventsWithFilter(String text,
                                            Integer[] categories,
                                            Boolean paid,
                                            Boolean onlyAvailable,
@@ -278,15 +207,13 @@ public class EventServiceImpl implements EventService {
             case EVENT_DATE:
                 page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
                 events = eventRepository.findAll(spec, page);
-                return statsClient.addViews(events);
+                return eventMapper.toEventFullDtoList(statsClient.addViews(events));
             case VIEWS:
                 page = PageRequest.of(from, size);
                 events = eventRepository.findAll(spec, page);
                 statsClient.addViews(events);
                 events.sort(Comparator.comparing(Event::getViews));
-                return events;
-            case DISTANCE:
-
+                return eventMapper.toEventFullDtoList(events);
             default:
                 throw new RuntimeException();
         }
@@ -312,7 +239,12 @@ public class EventServiceImpl implements EventService {
                 eventsAfter() : eventsBetween(
                 LocalDateTime.parse(rangeStart, formatter),
                 LocalDateTime.parse(rangeEnd, formatter));
-        Specification<Event> eventsDistanceLessThen = (lat == null || lon ==0 || distance == 0) ? null : eventsDistanceLessThen(lat, lon, distance);
+        Specification<Event> eventsDistanceLessThen =
+                (lat == null || lon == null || distance == 0) ? null :
+                        eventsDistanceLessThen(
+                                CoordinatesMapper.geometryFactory.createPoint(new Coordinate(lon, lat)),
+                                distance
+                        );
         return Specification.where(containsText)
                 .and(isPaid)
                 .and(hasCategory)

@@ -37,7 +37,6 @@ public class Event {
     @OneToOne
     private User initiator;
 
-
     private Point coordinates;
 
     private Boolean paid;

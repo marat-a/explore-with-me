@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface EventService {
 
-    List<Event> getEventsWithFilter(String text,
+    List<EventFullDto> getEventsWithFilter(String text,
                                     Integer[] categories,
                                     Boolean paid,
                                     Boolean onlyAvailable,
